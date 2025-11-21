@@ -26,6 +26,8 @@
             .glass-panel {
                 padding: 0.75rem;
                 max-width: 95%;
+                width: 95vw; /* Ensure consistent width */
+                margin: 0 auto; /* Center align */
             }
             
             #main-title {
@@ -38,57 +40,47 @@
                 padding: 0.75rem 1rem;
             }
             
-            /* Ensure control panel is properly centered on mobile */
-            #control-panel {
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                padding: 0 1rem !important;
-                box-sizing: border-box !important;
-                position: fixed !important;
-                top: 1rem !important;
-                right: auto !important;
-                margin: 0 !important;
+            /* Additional mobile browser compatibility fixes */
+            @supports (-webkit-touch-callout: none) {
+                /* iOS Safari specific fixes */
+                #control-panel {
+                    position: fixed !important;
+                    top: 1rem !important;
+                    left: 50% !important;
+                    right: auto !important;
+                    transform: translateX(-50%) !important;
+                    margin: 0 !important;
+                    width: 95vw !important;
+                    max-width: 400px !important;
+                }
+                
+                #panel-indicator {
+                    position: fixed !important;
+                    top: 1rem !important;
+                    left: 50% !important;
+                    right: auto !important;
+                    transform: translateX(-50%) !important;
+                    margin: 0 !important;
+                }
             }
             
-            #panel-content {
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 auto !important;
-                box-sizing: border-box !important;
-            }
-            
-            /* Ensure proper centering for all elements inside panel */
-            #panel-content > div {
-                width: 100% !important;
-                justify-content: center !important;
-            }
-            
-            /* Theme buttons container centering */
-            #theme-buttons {
-                justify-content: center !important;
-                width: 100% !important;
-            }
-            
-            /* Control buttons container centering */
-            #panel-content > div:last-child {
-                justify-content: center !important;
-            }
-        }
-
-        /* Extra small mobile devices */
-        @media (max-width: 375px) {
-            #control-panel {
-                padding: 0 0.5rem !important;
-            }
-            
-            .glass-panel {
-                padding: 0.5rem !important;
-            }
-            
-            #panel-content {
-                gap: 0.5rem !important;
+            @supports not (-webkit-touch-callout: none) {
+                /* Non-iOS mobile browsers */
+                @media (max-width: 640px) {
+                    #control-panel {
+                        left: 0 !important;
+                        right: 0 !important;
+                        transform: none !important;
+                        margin: 0 auto !important;
+                    }
+                    
+                    #panel-indicator {
+                        left: 0 !important;
+                        right: 0 !important;
+                        transform: none !important;
+                        margin: 0 auto !important;
+                    }
+                }
             }
         }
 
@@ -176,8 +168,8 @@
         </div>
 
         <!-- Control Panel - Top Positioned with Hide/Show -->
-        <div id="control-panel" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-            <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3 items-center max-w-md w-[95vw] sm:w-[90vw] md:w-auto shadow-2xl transition-all duration-500 ease-in-out" id="panel-content">
+        <div id="control-panel" class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+            <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3 items-center max-w-md w-full sm:w-[90vw] md:w-auto shadow-2xl transition-all duration-500 ease-in-out" id="panel-content">
                 <!-- Panel Header with Hide/Show Toggle -->
                 <div class="flex items-center justify-between w-full">
                     <div class="text-white text-sm font-bold tracking-widest opacity-80 uppercase">控制面板</div>
@@ -207,7 +199,7 @@
         </div>
         
         <!-- Panel Indicator (shown when panel is hidden) -->
-        <button id="panel-indicator" class="fixed top-4 left-4 z-40 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 ease-in-out shadow-lg backdrop-blur-sm border border-white/20 opacity-0 pointer-events-none scale-95">
+        <button id="panel-indicator" class="fixed top-4 left-0 right-0 mx-auto z-40 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 ease-in-out shadow-lg backdrop-blur-sm border border-white/20 opacity-0 pointer-events-none scale-95 w-12 h-12 flex items-center justify-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"></path>
             </svg>
