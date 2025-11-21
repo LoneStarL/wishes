@@ -2,11 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wishes</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
@@ -25,92 +21,21 @@
                 user-select: none;
                 -webkit-user-select: none;
                 -webkit-touch-callout: none;
-                min-height: 100vh; /* Ensure full viewport height */
-                min-width: 100vw; /* Ensure full viewport width */
-                position: fixed; /* Prevent scrolling */
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
             }
             
             .glass-panel {
                 padding: 0.75rem;
-                max-width: 95vw; /* Use viewport width units */
-                width: 95vw; /* Ensure proper width */
-                margin: 0 auto; /* Center align */
+                max-width: 95%;
             }
             
             #main-title {
                 font-size: 2.5rem !important;
                 line-height: 1.2;
-                word-break: break-word; /* Prevent text overflow */
-                max-width: 90vw; /* Limit width */
             }
             
             .glass-panel button {
                 min-height: 44px; /* iOS recommended touch target */
                 padding: 0.75rem 1rem;
-                min-width: 44px; /* Ensure minimum touch target width */
-            }
-            
-            /* Fix for viewport height issues */
-            html {
-                height: -webkit-fill-available; /* iOS Safari fix */
-            }
-            
-            /* Ensure proper scaling */
-            #app-body {
-                min-height: 100vh;
-                min-height: -webkit-fill-available; /* iOS Safari */
-                position: relative;
-                overflow: hidden;
-            }
-            
-            /* Control panel mobile fixes */
-            #control-panel {
-                position: fixed !important;
-                top: 1rem !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                width: 95vw !important;
-                max-width: 95vw !important;
-            }
-            
-            #panel-content {
-                width: 100% !important;
-                max-width: 100% !important;
-                box-sizing: border-box;
-            }
-            
-            /* Theme buttons mobile layout */
-            #theme-buttons {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 0.5rem;
-                max-width: 100%;
-            }
-            
-            #theme-buttons button {
-                flex: 0 1 auto;
-                min-width: 60px;
-                font-size: 0.75rem;
-                padding: 0.5rem 0.75rem;
-            }
-            
-            /* Control buttons container */
-            #panel-content > div:last-child {
-                display: flex;
-                justify-content: center;
-                width: 100%;
-            }
-            
-            /* Panel indicator mobile position */
-            #panel-indicator {
-                top: 1rem !important;
-                left: 1rem !important;
-                position: fixed !important;
             }
         }
 
@@ -589,47 +514,23 @@
             let touchStartTime = 0;
             document.addEventListener('touchstart', (e) => {
                 touchStartTime = Date.now();
-                // Prevent default to avoid double-tap zoom
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            }, { passive: true });
 
             document.addEventListener('touchend', (e) => {
                 // Prevent accidental touches
                 if (Date.now() - touchStartTime > 500) return;
                 
-                // Prevent ghost clicks
-                e.preventDefault();
-                
                 const touch = e.changedTouches[0];
                 handleBackgroundInteraction(touch.clientX, touch.clientY);
-            }, { passive: false });
+            }, { passive: true });
 
-            // Enhanced click/touch handling
+            // Click/Touch on background (desktop)
             document.addEventListener('click', (e) => {
-                // Only handle clicks from mouse/pen, not touch
-                if (!e.pointerType || e.pointerType === 'mouse' || e.pointerType === 'pen') {
+                // Only handle clicks from mouse/pen
+                if (e.pointerType === 'mouse' || e.pointerType === 'pen') {
                     handleBackgroundInteraction(e.clientX, e.clientY);
                 }
             });
-
-            // Prevent double-tap zoom on mobile
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, { passive: false });
-
-            // Prevent pinch zoom
-            document.addEventListener('touchmove', (e) => {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
 
             document.getElementById('toggle-auto').addEventListener('click', (e) => {
                 e.stopPropagation();
