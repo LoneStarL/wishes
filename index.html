@@ -37,8 +37,37 @@
                 min-height: 44px; /* iOS recommended touch target */
                 padding: 0.75rem 1rem;
             }
+            
+            /* Theme button specific mobile styles */
+            #theme-buttons button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+                min-height: 36px;
+            }
+            
+            /* Control button specific mobile styles */
+            #toggle-auto {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+                max-width: 100px !important;
+            }
         }
 
+        /* Ultra small screens */
+        @media (max-width: 375px) {
+            #main-title {
+                font-size: 2rem !important;
+            }
+            
+            .glass-panel {
+                padding: 0.5rem;
+            }
+            
+            #theme-buttons button {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.7rem;
+            }
+        }
         .font-art {
             font-family: 'Ma Shan Zheng', cursive;
         }
@@ -124,29 +153,29 @@
 
         <!-- Control Panel - Top Positioned with Hide/Show -->
         <div id="control-panel" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-            <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3 items-center max-w-md w-[95vw] sm:w-[90vw] md:w-auto shadow-2xl transition-all duration-500 ease-in-out" id="panel-content">
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col gap-2 sm:gap-3 items-center max-w-[95vw] sm:max-w-md w-full shadow-2xl transition-all duration-500 ease-in-out" id="panel-content">
                 <!-- Panel Header with Hide/Show Toggle -->
-                <div class="flex items-center justify-between w-full">
-                    <div class="text-white text-sm font-bold tracking-widest opacity-80 uppercase">控制面板</div>
+                <div class="flex items-center justify-between w-full px-1">
+                    <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase">控制面板</div>
                     <button id="toggle-panel" class="text-white/70 hover:text-white transition-colors duration-200 p-1 rounded-md hover:bg-white/10">
-                        <svg id="panel-icon-hide" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="panel-icon-hide" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
                         </svg>
-                        <svg id="panel-icon-show" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="panel-icon-show" class="w-4 h-4 sm:w-5 sm:h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
                 </div>
                 
                 <!-- Theme Selection -->
-                <div class="text-white text-sm font-bold tracking-widest opacity-80 uppercase">选择主题</div>
-                <div class="flex flex-wrap justify-center gap-2 sm:gap-3" id="theme-buttons">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase">选择主题</div>
+                <div class="flex flex-wrap justify-center gap-1 sm:gap-2 md:gap-3" id="theme-buttons">
                     <!-- Buttons injected by JS -->
                 </div>
                 
                 <!-- Control Buttons -->
-                <div class="flex gap-2 sm:gap-3">
-                    <button id="toggle-auto" class="bg-white/20 hover:bg-white/30 text-white py-2 sm:py-2 px-3 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base">
+                <div class="flex gap-2 sm:gap-3 w-full justify-center">
+                    <button id="toggle-auto" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
                         ⏸ 暂停
                     </button>
                 </div>
@@ -341,21 +370,21 @@
             // --- Core Functions ---
 
             // Initialize Theme Buttons
+            // Create UI elements
             function initUI() {
+                // Create theme buttons with responsive sizing
                 const btnContainer = document.getElementById('theme-buttons');
                 Object.keys(themes).forEach(key => {
-                    const theme = themes[key];
                     const btn = document.createElement('button');
-                    btn.className = `px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border border-white/30 text-white hover:bg-white/20 hover:scale-105 active:scale-95 touch-manipulation min-h-[44px] ${key === currentThemeKey ? 'bg-white/30 ring-2 ring-white/50' : 'bg-transparent'}`;
-                    btn.innerText = theme.name;
-                    btn.onclick = (e) => {
+                    btn.innerText = themes[key].name;
+                    btn.className = 'text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-xs sm:text-sm md:text-base bg-transparent hover:bg-white/10';
+                    btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         setTheme(key);
-                    };
+                    });
                     btnContainer.appendChild(btn);
                 });
             }
-
             // Set Theme Logic
             function setTheme(key) {
                 currentThemeKey = key;
@@ -376,10 +405,10 @@
                 Object.keys(themes).forEach((k, index) => {
                     if (k === key) {
                         btns[index].classList.add('bg-white/30', 'ring-2', 'ring-white/50');
-                        btns[index].classList.remove('bg-transparent');
+                        btns[index].classList.remove('bg-transparent', 'hover:bg-white/10');
                     } else {
                         btns[index].classList.remove('bg-white/30', 'ring-2', 'ring-white/50');
-                        btns[index].classList.add('bg-transparent');
+                        btns[index].classList.add('bg-transparent', 'hover:bg-white/10');
                     }
                 });
             }
