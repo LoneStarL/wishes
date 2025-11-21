@@ -37,6 +37,59 @@
                 min-height: 44px; /* iOS recommended touch target */
                 padding: 0.75rem 1rem;
             }
+            
+            /* Ensure control panel is properly centered on mobile */
+            #control-panel {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                padding: 0 1rem !important;
+                box-sizing: border-box !important;
+                position: fixed !important;
+                top: 1rem !important;
+                right: auto !important;
+                margin: 0 !important;
+            }
+            
+            #panel-content {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 auto !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Ensure proper centering for all elements inside panel */
+            #panel-content > div {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            
+            /* Theme buttons container centering */
+            #theme-buttons {
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            
+            /* Control buttons container centering */
+            #panel-content > div:last-child {
+                justify-content: center !important;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 375px) {
+            #control-panel {
+                padding: 0 0.5rem !important;
+            }
+            
+            .glass-panel {
+                padding: 0.5rem !important;
+            }
+            
+            #panel-content {
+                gap: 0.5rem !important;
+            }
         }
 
         .font-art {
