@@ -2,16 +2,18 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>wishes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wishes</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700&display=swap');
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            overflow: hidden; /* Prevent scrollbars */
-            touch-action: manipulation; /* Improve touch response */
+            overflow: hidden;
+            touch-action: manipulation;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Mobile fix */
         }
 
         .font-art {
@@ -47,17 +49,13 @@
             }
         }
 
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-            50% { box-shadow: 0 0 30px rgba(255,255,255,0.6); }
-        }
-
         .blessing-item {
             position: absolute;
-            pointer-events: none; /* Click through */
+            pointer-events: none;
             user-select: none;
             will-change: transform, opacity;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 1;
         }
 
         /* Glassmorphism UI */
@@ -67,36 +65,41 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
+        /* Mobile Safety Spacing */
+        .safe-pb {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden transition-colors duration-1000 ease-in-out" id="app-body">
+<body class="w-screen overflow-hidden transition-colors duration-1000 ease-in-out" id="app-body">
 
-    <!-- Background Overlay for Patterns -->
+    <!-- Background Overlay -->
     <div id="bg-pattern" class="absolute inset-0 opacity-10 pointer-events-none z-0" style="background-image: radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px); background-size: 40px 40px;"></div>
 
     <!-- Main Content Container -->
-    <div class="relative z-10 w-full h-full flex flex-col items-center justify-end pb-8 sm:pb-12">
+    <div class="relative z-20 w-full h-full flex flex-col items-center justify-end safe-pb pb-4">
         
-        <!-- Center Text (Title) -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0">
-            <h1 id="main-title" class="font-art text-5xl md:text-7xl text-white opacity-90 drop-shadow-lg transition-all duration-500 transform hover:scale-110">
+        <!-- Center Text (Title) - Adjusted Top Position -->
+        <div class="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0 w-full px-4">
+            <h1 id="main-title" class="font-art text-5xl sm:text-6xl md:text-7xl text-white opacity-90 drop-shadow-lg transition-all duration-500 transform hover:scale-110">
                 新年快乐
             </h1>
-            <p class="text-white/80 mt-4 text-lg animate-pulse">点击屏幕发送祝福</p>
+            <p class="text-white/80 mt-2 sm:mt-4 text-base sm:text-lg animate-pulse">点击屏幕发送祝福</p>
         </div>
 
         <!-- Control Panel -->
-        <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3 items-center max-w-md w-[90%] z-50 shadow-2xl">
-            <div class="text-white text-sm font-bold tracking-widest opacity-80 uppercase">选择主题</div>
-            <div class="flex flex-wrap justify-center gap-3" id="theme-buttons">
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col gap-3 items-center w-[95%] max-w-md z-50 shadow-2xl mx-auto">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest opacity-80 uppercase">选择主题</div>
+            <div class="flex flex-wrap justify-center gap-2 w-full" id="theme-buttons">
                 <!-- Buttons injected by JS -->
             </div>
             
-            <div class="flex w-full gap-3 mt-2">
-                <button id="toggle-auto" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition font-medium active:scale-95 border border-white/10">
+            <div class="flex w-full gap-2 mt-1">
+                <button id="toggle-auto" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-2.5 sm:py-2 rounded-lg transition text-sm sm:text-base font-medium active:scale-95 border border-white/10 touch-manipulation">
                     ⏸ 暂停
                 </button>
-                <button id="burst-btn" class="flex-1 bg-yellow-400/80 hover:bg-yellow-400 text-black py-2 rounded-lg transition font-bold active:scale-95 shadow-[0_0_15px_rgba(250,204,21,0.6)]">
+                <button id="burst-btn" class="flex-1 bg-yellow-400/80 hover:bg-yellow-400 text-black py-2.5 sm:py-2 rounded-lg transition text-sm sm:text-base font-bold active:scale-95 shadow-[0_0_15px_rgba(250,204,21,0.6)] touch-manipulation">
                     🚀 狂欢模式
                 </button>
             </div>
@@ -104,7 +107,7 @@
     </div>
 
     <!-- Container for dynamic elements -->
-    <div id="blessing-container" class="absolute inset-0 pointer-events-none overflow-hidden z-0"></div>
+    <div id="blessing-container" class="absolute inset-0 pointer-events-none overflow-hidden z-10"></div>
 
     <script>
         // Configuration Data
@@ -172,7 +175,8 @@
             Object.keys(themes).forEach(key => {
                 const theme = themes[key];
                 const btn = document.createElement('button');
-                btn.className = `px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border border-white/30 text-white hover:bg-white/20 hover:scale-105 active:scale-95 ${key === currentThemeKey ? 'bg-white/30 ring-2 ring-white/50' : 'bg-transparent'}`;
+                // Responsive button sizing
+                btn.className = `flex-grow sm:flex-grow-0 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 border border-white/30 text-white hover:bg-white/20 active:scale-95 touch-manipulation ${key === currentThemeKey ? 'bg-white/30 ring-2 ring-white/50' : 'bg-transparent'}`;
                 btn.innerText = theme.name;
                 btn.onclick = (e) => {
                     e.stopPropagation();
@@ -188,7 +192,7 @@
             const theme = themes[key];
             
             // Update Background
-            body.className = `h-screen w-screen overflow-hidden transition-colors duration-1000 ease-in-out ${theme.bgClass}`;
+            body.className = `w-screen overflow-hidden transition-colors duration-1000 ease-in-out ${theme.bgClass}`;
             
             // Update Title
             titleEl.innerText = theme.title;
@@ -200,12 +204,13 @@
             // Update Buttons visual state
             const btns = document.getElementById('theme-buttons').children;
             Object.keys(themes).forEach((k, index) => {
+                const btn = btns[index];
                 if (k === key) {
-                    btns[index].classList.add('bg-white/30', 'ring-2', 'ring-white/50');
-                    btns[index].classList.remove('bg-transparent');
+                    btn.classList.add('bg-white/30', 'ring-2', 'ring-white/50');
+                    btn.classList.remove('bg-transparent');
                 } else {
-                    btns[index].classList.remove('bg-white/30', 'ring-2', 'ring-white/50');
-                    btns[index].classList.add('bg-transparent');
+                    btn.classList.remove('bg-white/30', 'ring-2', 'ring-white/50');
+                    btn.classList.add('bg-transparent');
                 }
             });
         }
@@ -224,12 +229,13 @@
             el.innerText = content;
             el.className = `blessing-item font-art font-bold absolute ${theme.color}`;
             
-            // Styling
+            // Responsive Styling
             const isMobile = window.innerWidth < 640;
             let sizeVal;
+            
             if (isMobile) {
-                // Smaller sizes for mobile
-                sizeVal = isText ? (Math.random() * 1.0 + 0.8) : (Math.random() * 1.5 + 1.0);
+                // Smaller sizes for mobile to avoid clutter
+                sizeVal = isText ? (Math.random() * 0.6 + 1.0) : (Math.random() * 1.0 + 1.5);
             } else {
                 // Original sizes for desktop
                 sizeVal = isText ? (Math.random() * 1.5 + 1.0) : (Math.random() * 2.0 + 1.5);
@@ -243,7 +249,8 @@
                 
                 // Burst Animation Physics
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = Math.random() * 150 + 50;
+                // Reduce velocity slightly on mobile to keep them on screen longer
+                const velocity = isMobile ? (Math.random() * 100 + 40) : (Math.random() * 150 + 50);
                 const tx = Math.cos(angle) * velocity + 'px';
                 const ty = Math.sin(angle) * velocity + 'px';
                 
@@ -271,10 +278,13 @@
         // Automatic Spawning Loop
         function startAutoSpawn() {
             if (spawnInterval) clearInterval(spawnInterval);
+            const isMobile = window.innerWidth < 640;
+            const intervalTime = isMobile ? 500 : 300; // Slower spawn on mobile to reduce chaos
+
             spawnInterval = setInterval(() => {
                 if(document.hidden) return; // Pause if tab hidden
                 spawnBlessing();
-            }, 300); // Spawn every 300ms
+            }, intervalTime);
         }
 
         function toggleAuto() {
@@ -293,16 +303,17 @@
 
         // Burst Mode Logic (Many items at once)
         function triggerBurst(x, y) {
+            const isMobile = window.innerWidth < 640;
+            const count = isMobile ? 8 : 15; // Fewer items on mobile
+
             // Create visuals
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < count; i++) {
                 spawnBlessing(x, y, true);
             }
             
-            // Also add a few floating ones from this position
-            for (let i = 0; i < 3; i++) {
-                 // Convert px to % for the non-burst function if we wanted specific placement, 
-                 // but spawnBlessing logic for float takes % for X. 
-                 // Let's just spawn random ones to fill screen.
+            // Add a few floating ones
+            const floatCount = isMobile ? 1 : 3;
+            for (let i = 0; i < floatCount; i++) {
                  setTimeout(() => spawnBlessing(), i * 100);
             }
         }
@@ -313,7 +324,6 @@
         document.addEventListener('click', (e) => {
             // Avoid triggering on buttons
             if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-            
             triggerBurst(e.clientX, e.clientY);
         });
 
@@ -323,7 +333,9 @@
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             triggerBurst(centerX, centerY);
-            triggerBurst(centerX, centerY); // Double dose
+            if(window.innerWidth > 640) {
+                triggerBurst(centerX, centerY); // Double dose only on desktop
+            }
         });
 
         document.getElementById('toggle-auto').addEventListener('click', (e) => {
@@ -337,9 +349,23 @@
         startAutoSpawn();
 
         // Handle Resize
+        let resizeTimeout;
         window.addEventListener('resize', () => {
-            // Optional: clear items if needed, but usually CSS handles it
+            // Debounce resize handling
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Restart auto spawn to adjust interval if switching between mobile/desktop
+                if(isAutoPlaying) startAutoSpawn();
+            }, 200);
         });
+
+        // Fix iOS height issue
+        function setMobileHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setMobileHeight);
+        setMobileHeight();
 
     </script>
 </body>
