@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>动态祝福生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            overflow: hidden; /* Prevent scrollbars */
+            touch-action: manipulation; /* Improve touch response */
+        }
+
+        .font-art {
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        /* Custom Animation Keyframes */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(110vh) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-20vh) scale(1.2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes burstOut {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+            50% { box-shadow: 0 0 30px rgba(255,255,255,0.6); }
+        }
+
+        .blessing-item {
+            position: absolute;
+            pointer-events: none; /* Click through */
+            user-select: none;
+            will-change: transform, opacity;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Glassmorphism UI */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Debug mode styles */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden transition-colors duration-1000 ease-in-out" id="app-body">
+
+    <!-- Background Overlay for Patterns -->
+    <div id="bg-pattern" class="absolute inset-0 opacity-10 pointer-events-none z-0" style="background-image: radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <!-- Main Content Container -->
+    <div class="relative z-10 w-full h-full flex flex-col items-center justify-end pb-8 sm:pb-12">
+        
+        <!-- Center Text (Title) -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0">
+            <h1 id="main-title" class="font-art text-5xl md:text-7xl text-white opacity-90 drop-shadow-lg transition-all duration-500 transform hover:scale-110">
+                新年快乐
+            </h1>
+            <p class="text-white/80 mt-4 text-lg animate-pulse">点击屏幕发送祝福</p>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3 items-center max-w-md w-[90%] z-50 shadow-2xl">
+            <div class="text-white text-sm font-bold tracking-widest opacity-80 uppercase">选择主题</div>
+            <div class="flex flex-wrap justify-center gap-3" id="theme-buttons">
+                <!-- Buttons injected by JS -->
+            </div>
+            
+            <div class="flex w-full gap-3 mt-2">
+                <button id="toggle-auto" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition font-medium active:scale-95 border border-white/10">
+                    ⏸ 暂停
+                </button>
+                <button id="burst-btn" class="flex-1 bg-yellow-400/80 hover:bg-yellow-400 text-black py-2 rounded-lg transition font-bold active:scale-95 shadow-[0_0_15px_rgba(250,204,21,0.6)]">
+                    🚀 狂欢模式
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container for dynamic elements -->
+    <div id="blessing-container" class="absolute inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+    <script>
+        // Configuration Data
+        const themes = {
+            newyear: {
+                name: "春节",
+                bgClass: "bg-gradient-to-b from-red-900 via-red-700 to-red-500",
+                title: "新年快乐",
+                texts: ["恭喜发财", "万事如意", "身体健康", "大吉大利", "龙年大吉", "岁岁平安", "财源广进"],
+                emojis: ["🧧", "🧨", "🏮", "🐉", "🥟", "💰", "✨"],
+                color: "text-yellow-300",
+                particleColor: "#FFD700"
+            },
+            birthday: {
+                name: "生日",
+                bgClass: "bg-gradient-to-b from-pink-600 via-purple-500 to-indigo-500",
+                title: "生日快乐",
+                texts: ["许个愿吧", "天天开心", "永远18岁", "梦想成真", "快乐加倍", "蛋糕来啦", "Happy Birthday"],
+                emojis: ["🎂", "🎉", "🎁", "🕯️", "🎈", "🥳", "👑"],
+                color: "text-pink-100",
+                particleColor: "#FF69B4"
+            },
+            love: {
+                name: "浪漫",
+                bgClass: "bg-gradient-to-br from-rose-900 via-pink-700 to-rose-500",
+                title: "我爱你",
+                texts: ["一生一世", "幸福美满", "执子之手", "心心相印", "你是唯一", "Love You", "比心"],
+                emojis: ["❤️", "🌹", "💑", "💌", "💍", "💖", "🥰"],
+                color: "text-rose-100",
+                particleColor: "#FFC0CB"
+            },
+            cyber: {
+                name: "极客",
+                bgClass: "bg-gradient-to-b from-slate-900 via-slate-800 to-black",
+                title: "Hello World",
+                texts: ["Bug Free", "1024", "Coding...", "Deploy", "Success", "AI", "Future"],
+                emojis: ["💻", "🚀", "🤖", "⚡", "💾", "🌐", "👾"],
+                color: "text-green-400",
+                particleColor: "#00FF00"
+            },
+            wealth: {
+                name: "搞钱",
+                bgClass: "bg-gradient-to-b from-yellow-800 via-yellow-600 to-amber-500",
+                title: "暴富",
+                texts: ["搞钱要紧", "日进斗金", "不劳而获", "财务自由", "暴富暴瘦", "买买买", "涨涨涨"],
+                emojis: ["💰", "💸", "🤑", "💎", "🏦", "📈", "🪙"],
+                color: "text-yellow-100",
+                particleColor: "#FFD700"
+            }
+        };
+
+        // State
+        let currentThemeKey = 'newyear';
+        let isAutoPlaying = true;
+        let spawnInterval;
+        const container = document.getElementById('blessing-container');
+        const body = document.getElementById('app-body');
+        const titleEl = document.getElementById('main-title');
+
+        // --- Core Functions ---
+
+        // Initialize Theme Buttons
+        function initUI() {
+            const btnContainer = document.getElementById('theme-buttons');
+            Object.keys(themes).forEach(key => {
+                const theme = themes[key];
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border border-white/30 text-white hover:bg-white/20 hover:scale-105 active:scale-95 ${key === currentThemeKey ? 'bg-white/30 ring-2 ring-white/50' : 'bg-transparent'}`;
+                btn.innerText = theme.name;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    setTheme(key);
+                };
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        // Set Theme Logic
+        function setTheme(key) {
+            currentThemeKey = key;
+            const theme = themes[key];
+            
+            // Update Background
+            body.className = `h-screen w-screen overflow-hidden transition-colors duration-1000 ease-in-out ${theme.bgClass}`;
+            
+            // Update Title
+            titleEl.innerText = theme.title;
+            titleEl.style.opacity = 0;
+            setTimeout(() => {
+                titleEl.style.opacity = 0.9;
+            }, 300);
+
+            // Update Buttons visual state
+            const btns = document.getElementById('theme-buttons').children;
+            Object.keys(themes).forEach((k, index) => {
+                if (k === key) {
+                    btns[index].classList.add('bg-white/30', 'ring-2', 'ring-white/50');
+                    btns[index].classList.remove('bg-transparent');
+                } else {
+                    btns[index].classList.remove('bg-white/30', 'ring-2', 'ring-white/50');
+                    btns[index].classList.add('bg-transparent');
+                }
+            });
+        }
+
+        // Create a single floating element
+        function spawnBlessing(x, y, isBurst = false) {
+            const theme = themes[currentThemeKey];
+            const el = document.createElement('div');
+            
+            // Decide content: text or emoji
+            const isText = Math.random() > 0.4;
+            const content = isText 
+                ? theme.texts[Math.floor(Math.random() * theme.texts.length)]
+                : theme.emojis[Math.floor(Math.random() * theme.emojis.length)];
+
+            el.innerText = content;
+            el.className = `blessing-item font-art font-bold absolute ${theme.color}`;
+            
+            // Styling
+            const isMobile = window.innerWidth < 640;
+            let sizeVal;
+            if (isMobile) {
+                // Smaller sizes for mobile
+                sizeVal = isText ? (Math.random() * 1.0 + 0.8) : (Math.random() * 1.5 + 1.0);
+            } else {
+                // Original sizes for desktop
+                sizeVal = isText ? (Math.random() * 1.5 + 1.0) : (Math.random() * 2.0 + 1.5);
+            }
+            el.style.fontSize = sizeVal + 'rem';
+            
+            // Position
+            if (isBurst) {
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                
+                // Burst Animation Physics
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 150 + 50;
+                const tx = Math.cos(angle) * velocity + 'px';
+                const ty = Math.sin(angle) * velocity + 'px';
+                
+                el.style.setProperty('--tx', tx);
+                el.style.setProperty('--ty', ty);
+                el.style.animation = `burstOut ${Math.random() * 0.5 + 0.5}s ease-out forwards`;
+            } else {
+                // Infinite Float Up Logic
+                const startX = x !== undefined ? x : Math.random() * 100; // %
+                el.style.left = startX + '%';
+                el.style.bottom = '-10%'; // Start below screen
+                
+                const duration = Math.random() * 5 + 4; // 4-9s
+                el.style.animation = `floatUp ${duration}s linear forwards`;
+            }
+
+            container.appendChild(el);
+
+            // Cleanup
+            el.addEventListener('animationend', () => {
+                el.remove();
+            });
+        }
+
+        // Automatic Spawning Loop
+        function startAutoSpawn() {
+            if (spawnInterval) clearInterval(spawnInterval);
+            spawnInterval = setInterval(() => {
+                if(document.hidden) return; // Pause if tab hidden
+                spawnBlessing();
+            }, 300); // Spawn every 300ms
+        }
+
+        function toggleAuto() {
+            const btn = document.getElementById('toggle-auto');
+            if (isAutoPlaying) {
+                clearInterval(spawnInterval);
+                btn.innerText = "▶ 继续";
+                btn.classList.replace('bg-white/20', 'bg-green-500/50');
+            } else {
+                startAutoSpawn();
+                btn.innerText = "⏸ 暂停";
+                btn.classList.replace('bg-green-500/50', 'bg-white/20');
+            }
+            isAutoPlaying = !isAutoPlaying;
+        }
+
+        // Burst Mode Logic (Many items at once)
+        function triggerBurst(x, y) {
+            // Create visuals
+            for (let i = 0; i < 15; i++) {
+                spawnBlessing(x, y, true);
+            }
+            
+            // Also add a few floating ones from this position
+            for (let i = 0; i < 3; i++) {
+                 // Convert px to % for the non-burst function if we wanted specific placement, 
+                 // but spawnBlessing logic for float takes % for X. 
+                 // Let's just spawn random ones to fill screen.
+                 setTimeout(() => spawnBlessing(), i * 100);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Click/Touch on background
+        document.addEventListener('click', (e) => {
+            // Avoid triggering on buttons
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            
+            triggerBurst(e.clientX, e.clientY);
+        });
+
+        // Manual Burst Button
+        document.getElementById('burst-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            triggerBurst(centerX, centerY);
+            triggerBurst(centerX, centerY); // Double dose
+        });
+
+        document.getElementById('toggle-auto').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAuto();
+        });
+
+        // Initialization
+        initUI();
+        setTheme('newyear');
+        startAutoSpawn();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            // Optional: clear items if needed, but usually CSS handles it
+        });
+
+    </script>
+</body>
+</html>
