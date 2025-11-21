@@ -56,18 +56,26 @@
                 opacity: 1;
             }
             100% {
-                transform: translateY(-20vh) scale(1.2) rotate(360deg);
+                transform: translateY(var(--float-height)) scale(1.2) rotate(360deg);
                 opacity: 0;
             }
         }
 
         @keyframes burstOut {
             0% {
-                transform: translate(0, 0) scale(0.5);
+                transform: translate(0, 0) scale(0.3);
                 opacity: 1;
             }
+            30% {
+                transform: translate(calc(var(--tx) * 0.3), calc(var(--ty) * 0.3)) scale(0.6);
+                opacity: 0.9;
+            }
+            70% {
+                transform: translate(calc(var(--tx) * 0.8), calc(var(--ty) * 0.8)) scale(0.9);
+                opacity: 0.5;
+            }
             100% {
-                transform: translate(var(--tx), var(--ty)) scale(0);
+                transform: translate(var(--tx), var(--ty)) scale(0.1);
                 opacity: 0;
             }
         }
@@ -83,6 +91,10 @@
             user-select: none;
             will-change: transform, opacity;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Glassmorphism UI */
@@ -249,15 +261,26 @@
             el.innerText = content;
             el.className = `blessing-item font-art font-bold absolute ${theme.color}`;
             
-            // Mobile-optimized sizing
+            // Enhanced size calculation with burst mode optimization
             const isMobile = window.innerWidth < 640;
             let sizeVal;
-            if (isMobile) {
-                // Optimized sizes for mobile
-                sizeVal = isText ? (Math.random() * 0.8 + 0.7) : (Math.random() * 1.2 + 0.8);
+            
+            if (isBurst) {
+                // Enhanced size for burst mode - much larger and more dramatic
+                if (isMobile) {
+                    // Mobile burst sizes - larger for better visibility
+                    sizeVal = isText ? (Math.random() * 1.2 + 1.4) : (Math.random() * 1.5 + 1.6);
+                } else {
+                    // Desktop burst sizes - significantly larger
+                    sizeVal = isText ? (Math.random() * 2.0 + 2.0) : (Math.random() * 2.5 + 2.2);
+                }
             } else {
-                // Original sizes for desktop
-                sizeVal = isText ? (Math.random() * 1.5 + 1.0) : (Math.random() * 2.0 + 1.5);
+                // Standard floating sizes (original logic)
+                if (isMobile) {
+                    sizeVal = isText ? (Math.random() * 0.8 + 0.7) : (Math.random() * 1.2 + 0.8);
+                } else {
+                    sizeVal = isText ? (Math.random() * 1.5 + 1.0) : (Math.random() * 2.0 + 1.5);
+                }
             }
             el.style.fontSize = sizeVal + 'rem';
             
@@ -266,22 +289,30 @@
                 el.style.left = x + 'px';
                 el.style.top = y + 'px';
                 
-                // Burst Animation Physics (reduced for mobile)
+                // Burst Animation Physics - Slowed down for smoother motion
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = isMobile ? Math.random() * 100 + 30 : Math.random() * 150 + 50;
+                // Reduced initial velocity for slower, more graceful movement
+                const velocity = isMobile ? Math.random() * 60 + 20 : Math.random() * 100 + 30;
                 const tx = Math.cos(angle) * velocity + 'px';
                 const ty = Math.sin(angle) * velocity + 'px';
                 
                 el.style.setProperty('--tx', tx);
                 el.style.setProperty('--ty', ty);
-                el.style.animation = `burstOut ${Math.random() * 0.4 + 0.3}s ease-out forwards`;
+                // Extended duration and eased animation for smoother trajectory
+                const duration = Math.random() * 0.8 + 0.8; // 0.8-1.6s (extended duration)
+                el.style.animation = `burstOut ${duration}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
             } else {
-                // Infinite Float Up Logic
+                // Infinite Float Up Logic with Random Height
                 const startX = x !== undefined ? x : Math.random() * 100; // %
                 el.style.left = startX + '%';
                 el.style.bottom = '-10%'; // Start below screen
                 
                 const duration = Math.random() * 4 + 3; // 3-7s (faster on mobile)
+                
+                // 随机高度：-80vh 到 -15vh (从屏幕上方15vh到80vh的高度消失)
+                const floatHeight = -(Math.random() * 65 + 15) + 'vh';
+                el.style.setProperty('--float-height', floatHeight);
+                
                 el.style.animation = `floatUp ${duration}s linear forwards`;
             }
 
