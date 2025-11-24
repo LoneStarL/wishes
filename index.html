@@ -126,6 +126,53 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* 烟花发射元素样式 */
+        .firework-item {
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            will-change: transform, opacity;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            z-index: 15;
+        }
+
+        /* 烟花粒子样式 */
+        .firework-particle {
+            position: fixed;
+            pointer-events: none;
+            user-select: none;
+            will-change: transform, opacity;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            z-index: 20;
+        }
+
+        /* 性能优化 - 硬件加速 */
+        .firework-item,
+        .firework-particle,
+        .blessing-item {
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            -ms-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-perspective: 1000;
+            -moz-perspective: 1000;
+            -ms-perspective: 1000;
+            perspective: 1000;
+        }
+
         /* Glassmorphism UI */
         .glass-panel {
             background: rgba(255, 255, 255, 0.15);
@@ -177,6 +224,9 @@
                 <div class="flex gap-2 sm:gap-3 w-full justify-center">
                     <button id="toggle-auto" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
                         ⏸ 暂停
+                    </button>
+                    <button id="toggle-fireworks" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
+                        🎆 烟花关
                     </button>
                 </div>
             </div>
@@ -366,6 +416,13 @@
             const container = document.getElementById('blessing-container');
             const body = document.getElementById('app-body');
             const titleEl = document.getElementById('main-title');
+            
+            // 烟花发射系统状态（默认关闭）
+            let isFireworksEnabled = false;
+            
+            // 获取控制按钮元素
+            const autoToggleBtn = document.getElementById('toggle-auto');
+            const fireworksToggleBtn = document.getElementById('toggle-fireworks');
 
             // --- Core Functions ---
 
@@ -496,7 +553,7 @@
                 spawnInterval = setInterval(() => {
                     if(document.hidden) return; // Pause if tab hidden
                     spawnBlessing();
-                }, 150); // Spawn every 150ms
+                }, 300); // Spawn every 300ms
             }
 
             function toggleAuto() {
@@ -566,11 +623,513 @@
                 toggleAuto();
             });
 
+            // === 烟花发射特效系统 ===
+            
+            // 对象池管理
+            class ObjectPool {
+                constructor(createFn, resetFn, maxSize = 100) {
+                    this.createFn = createFn;
+                    this.resetFn = resetFn;
+                    this.pool = [];
+                    this.active = [];
+                    this.maxSize = maxSize;
+                }
+                
+                get() {
+                    let obj;
+                    if (this.pool.length > 0) {
+                        obj = this.pool.pop();
+                    } else if (this.active.length < this.maxSize) {
+                        obj = this.createFn();
+                    } else {
+                        return null;
+                    }
+                    this.active.push(obj);
+                    return obj;
+                }
+                
+                release(obj) {
+                    const index = this.active.indexOf(obj);
+                    if (index !== -1) {
+                        this.active.splice(index, 1);
+                        this.resetFn(obj);
+                        this.pool.push(obj);
+                    }
+                }
+                
+                releaseAll() {
+                    this.active.forEach(obj => {
+                        this.resetFn(obj);
+                        this.pool.push(obj);
+                    });
+                    this.active = [];
+                }
+            }
+
+            // 烟花发射器类
+            class FireworkLauncher {
+                constructor() {
+                    this.launchInterval = null;
+                    this.activeFireworks = [];
+                    this.isActive = false;
+                    
+                    // 对象池
+                    this.fireworkPool = new ObjectPool(
+                        () => this.createFireworkElement(),
+                        (el) => this.resetFireworkElement(el)
+                    );
+                    
+                    this.particlePool = new ObjectPool(
+                        () => this.createParticleElement(),
+                        (el) => this.resetParticleElement(el)
+                    );
+                }
+                
+                createFireworkElement() {
+                    const el = document.createElement('div');
+                    el.className = 'firework-item font-art font-bold absolute';
+                    el.style.pointerEvents = 'none';
+                    el.style.userSelect = 'none';
+                    el.style.willChange = 'transform, opacity';
+                    el.style.textShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                    el.style.transformStyle = 'preserve-3d';
+                    el.style.backfaceVisibility = 'hidden';
+                    el.style.webkitFontSmoothing = 'antialiased';
+                    el.style.mozOsxFontSmoothing = 'grayscale';
+                    return el;
+                }
+                
+                resetFireworkElement(el) {
+                    el.style.transform = '';
+                    el.style.opacity = '';
+                    el.style.left = '';
+                    el.style.bottom = '';
+                    el.style.fontSize = '';
+                    el.style.color = '';
+                    el.innerHTML = '';
+                    el.className = 'firework-item font-art font-bold absolute';
+                }
+                
+                createParticleElement() {
+                    const el = document.createElement('div');
+                    el.className = 'firework-particle font-art font-bold absolute';
+                    el.style.pointerEvents = 'none';
+                    el.style.userSelect = 'none';
+                    el.style.willChange = 'transform, opacity';
+                    el.style.textShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                    el.style.transformStyle = 'preserve-3d';
+                    el.style.backfaceVisibility = 'hidden';
+                    el.style.webkitFontSmoothing = 'antialiased';
+                    el.style.mozOsxFontSmoothing = 'grayscale';
+                    return el;
+                }
+                
+                resetParticleElement(el) {
+                    el.style.transform = '';
+                    el.style.opacity = '';
+                    el.style.left = '';
+                    el.style.bottom = '';
+                    el.style.fontSize = '';
+                    el.style.color = '';
+                    el.innerHTML = '';
+                    el.className = 'firework-particle font-art font-bold absolute';
+                }
+                
+                start() {
+                    if (this.isActive) return;
+                    this.isActive = true;
+                    
+                    this.launchInterval = setInterval(() => {
+                        if (Math.random() > 0.1) { // 90%概率发射
+                            this.launchFirework();
+                        }
+                    }, 300 + Math.random() * 500); // 0.3-0.8秒随机间隔
+                }
+                
+                stop() {
+                    this.isActive = false;
+                    if (this.launchInterval) {
+                        clearInterval(this.launchInterval);
+                        this.launchInterval = null;
+                    }
+                }
+                
+                launchFirework() {
+                    const theme = themes[currentThemeKey];
+                    const firework = this.fireworkPool.get();
+                    if (!firework) return;
+                    
+                    // 随机属性生成
+                    const startX = Math.random() * (window.innerWidth - 100) + 50;
+                    const speed = 1.5 + Math.random() * 2.5; // 1.5-4秒到达顶点
+                    const height = window.innerHeight * (0.3 + Math.random() * 0.4); // 30%-70%屏幕高度
+                    const isText = Math.random() > 0.4;
+                    const content = isText 
+                        ? theme.texts[Math.floor(Math.random() * theme.texts.length)]
+                        : theme.emojis[Math.floor(Math.random() * theme.emojis.length)];
+                    
+                    // 设置样式
+                    firework.innerHTML = content;
+                    firework.style.left = startX + 'px';
+                    firework.style.bottom = '-50px';
+                    // 生成随机颜色 - 烟花发射系统中的文字使用随机颜色
+                    const randomColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                    firework.style.color = randomColor;
+                    
+                    // 设置大小
+                    const isMobile = window.innerWidth < 640;
+                    const baseSize = isMobile ? 1.2 : 1.8;
+                    const size = baseSize + Math.random() * 0.8;
+                    firework.style.fontSize = size + 'rem';
+                    
+                    container.appendChild(firework);
+                    
+                    // 创建发射动画
+                    this.animateLaunch(firework, height, speed, isText, content);
+                }
+                
+                animateLaunch(element, targetHeight, duration, isText, content) {
+                    const startTime = performance.now();
+                    const startBottom = -50;
+                    
+                    const animate = (currentTime) => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / (duration * 1000), 1);
+                        
+                        // 缓动函数 - 先快后慢
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
+                        
+                        const currentBottom = startBottom + (targetHeight - startBottom) * easeOut;
+                        element.style.bottom = currentBottom + 'px';
+                        
+                        // 添加轻微的摆动效果
+                        const sway = Math.sin(progress * Math.PI * 4) * 10 * (1 - progress);
+                        const currentLeft = parseFloat(element.style.left);
+                        element.style.transform = `translateX(${sway}px)`;
+                        
+                        // 透明度变化
+                        const opacity = progress < 0.1 ? progress * 10 : (progress > 0.9 ? (1 - progress) * 10 : 1);
+                        element.style.opacity = opacity;
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // 到达顶点，触发爆炸
+                            this.explodeFirework(element, isText, content);
+                        }
+                    };
+                    
+                    requestAnimationFrame(animate);
+                }
+                
+                explodeFirework(element, isText, content) {
+                    const rect = element.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    if (isText) {
+                        this.explodeText(element, content, centerX, centerY);
+                    } else {
+                        this.explodeEmoji(element, content, centerX, centerY);
+                    }
+                    
+                    // 移除原元素
+                    this.fireworkPool.release(element);
+                    if (element.parentNode) {
+                        element.parentNode.removeChild(element);
+                    }
+                }
+                
+                explodeText(element, text, centerX, centerY) {
+                    const characters = text.split('');
+                    const particles = [];
+                    
+                    characters.forEach((char, index) => {
+                        const particle = this.particlePool.get();
+                        if (!particle) return;
+                        
+                        particle.innerHTML = char;
+                        particle.style.left = centerX + 'px';
+                        particle.style.top = centerY + 'px';
+                        particle.style.position = 'fixed';
+                        
+                        // 生成随机颜色
+                        const randomColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                        particle.style.color = randomColor;
+                        
+                        const isMobile = window.innerWidth < 640;
+                        const size = isMobile ? 1.0 : 1.5;
+                        particle.style.fontSize = size + 'rem';
+                        
+                        document.body.appendChild(particle);
+                        particles.push(particle);
+                        
+                        // 随机散射参数
+                        const angle = (Math.PI * 2 * index) / characters.length + Math.random() * 0.5;
+                        const distance = 80 + Math.random() * 120;
+                        const tx = Math.cos(angle) * distance;
+                        const ty = Math.sin(angle) * distance;
+                        const rotation = Math.random() * 720 - 360;
+                        
+                        this.animateParticle(particle, tx, ty, rotation, 1500 + Math.random() * 1000);
+                    });
+                    
+                    // 清理粒子
+                    setTimeout(() => {
+                        particles.forEach(particle => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                            this.particlePool.release(particle);
+                        });
+                    }, 2500);
+                }
+                
+                explodeEmoji(element, emoji, centerX, centerY) {
+                    // 创建多个小烟花效果
+                    const particleCount = 8 + Math.floor(Math.random() * 8);
+                    const particles = [];
+                    
+                    for (let i = 0; i < particleCount; i++) {
+                        const particle = this.particlePool.get();
+                        if (!particle) continue;
+                        
+                        // 随机选择粒子类型
+                        const isEmoji = Math.random() > 0.6;
+                        particle.innerHTML = isEmoji ? emoji : '✨';
+                        particle.style.left = centerX + 'px';
+                        particle.style.top = centerY + 'px';
+                        particle.style.position = 'fixed';
+                        
+                        // 生成随机颜色
+                        const randomColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                        particle.style.color = randomColor;
+                        
+                        const isMobile = window.innerWidth < 640;
+                        const size = isEmoji ? (isMobile ? 1.0 : 1.5) : (isMobile ? 0.8 : 1.2);
+                        particle.style.fontSize = size + 'rem';
+                        
+                        document.body.appendChild(particle);
+                        particles.push(particle);
+                        
+                        // 随机散射参数
+                        const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.8;
+                        const distance = 60 + Math.random() * 100;
+                        const tx = Math.cos(angle) * distance;
+                        const ty = Math.sin(angle) * distance;
+                        const rotation = Math.random() * 360;
+                        
+                        this.animateParticle(particle, tx, ty, rotation, 1200 + Math.random() * 800);
+                    }
+                    
+                    // 清理粒子
+                    setTimeout(() => {
+                        particles.forEach(particle => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                            this.particlePool.release(particle);
+                        });
+                    }, 2000);
+                }
+                
+                animateParticle(element, tx, ty, rotation, duration) {
+                    const startTime = performance.now();
+                    const startOpacity = 1;
+                    
+                    const animate = (currentTime) => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        // 缓动函数
+                        const easeOut = 1 - Math.pow(1 - progress, 2);
+                        const easeInOut = progress < 0.5 
+                            ? 2 * progress * progress 
+                            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                        
+                        const currentTx = tx * easeOut;
+                        const currentTy = ty * easeOut;
+                        const currentRotation = rotation * easeInOut;
+                        
+                        // 添加重力效果
+                        const gravity = progress * progress * 20;
+                        
+                        element.style.transform = `translate(${currentTx}px, ${currentTy + gravity}px) rotate(${currentRotation}deg)`;
+                        
+                        // 透明度渐变
+                        const opacity = startOpacity * (1 - progress * 0.8);
+                        element.style.opacity = opacity;
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        }
+                    };
+                    
+                    requestAnimationFrame(animate);
+                }
+                
+                cleanup() {
+                this.stop();
+                this.fireworkPool.releaseAll();
+                this.particlePool.releaseAll();
+            }
+            
+            // 清理超出屏幕的元素
+            cleanupOffscreen() {
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                
+                // 清理超出屏幕的粒子
+                const particles = document.querySelectorAll('.firework-particle');
+                particles.forEach(particle => {
+                    const rect = particle.getBoundingClientRect();
+                    if (rect.left < -200 || rect.left > screenWidth + 200 || 
+                        rect.top < -200 || rect.top > screenHeight + 200) {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                        this.particlePool.release(particle);
+                    }
+                });
+                
+                // 清理超出屏幕的烟花元素
+                const fireworks = document.querySelectorAll('.firework-item');
+                fireworks.forEach(firework => {
+                    const rect = firework.getBoundingClientRect();
+                    if (rect.left < -200 || rect.left > screenWidth + 200 || 
+                        rect.bottom < -200 || rect.top > screenHeight + 200) {
+                        if (firework.parentNode) {
+                            firework.parentNode.removeChild(firework);
+                        }
+                        this.fireworkPool.release(firework);
+                    }
+                });
+            }
+            }
+
+            // 初始化烟花发射器
+            const fireworkLauncher = new FireworkLauncher();
+            
+            // 烟花开关控制函数
+            function toggleFireworks() {
+                isFireworksEnabled = !isFireworksEnabled;
+                
+                if (isFireworksEnabled) {
+                    fireworkLauncher.start();
+                    startPerformanceMonitor(); // 启动性能监控
+                    startCleanupInterval(); // 启动清理定时器
+                    fireworksToggleBtn.innerHTML = '🎆 烟花开';
+                    fireworksToggleBtn.classList.add('bg-green-500/30', 'hover:bg-green-500/40');
+                    fireworksToggleBtn.classList.remove('bg-white/20', 'hover:bg-white/30');
+                } else {
+                    fireworkLauncher.stop();
+                    stopPerformanceMonitor(); // 停止性能监控
+                    stopCleanupInterval(); // 停止清理定时器
+                    fireworksToggleBtn.innerHTML = '🎆 烟花关';
+                    fireworksToggleBtn.classList.remove('bg-green-500/30', 'hover:bg-green-500/40');
+                    fireworksToggleBtn.classList.add('bg-white/20', 'hover:bg-white/30');
+                }
+            }
+            
+            // 绑定烟花开关事件
+            fireworksToggleBtn.addEventListener('click', toggleFireworks);
+            
+            // 初始化按钮样式（默认关闭状态）
+            fireworksToggleBtn.classList.add('bg-white/20', 'hover:bg-white/30');
+
+            // 保存原始函数引用
+        const originalSpawnBlessingFunc = spawnBlessing;
+        
+        // 重新定义spawnBlessing函数，添加烟花发射功能
+        function spawnBlessingWithFireworks(x, y, isBurst = false) {
+            // 调用原始函数
+            originalSpawnBlessingFunc(x, y, isBurst);
+            
+            // 如果是点击触发的爆炸效果，也发射一个烟花
+            if (isBurst && Math.random() > 0.5) {
+                setTimeout(() => {
+                    fireworkLauncher.launchFirework();
+                }, Math.random() * 500);
+            }
+        }
+        
+        // 覆盖全局函数
+        window.spawnBlessing = spawnBlessingWithFireworks;
+
             // Initialization
              initUI();
              setTheme('newyear');
              startAutoSpawn();
              initPanelManagement(); // Initialize panel hide/show functionality
+
+            // 注意：烟花发射系统默认关闭，需要用户手动开启
+        
+        // 定期清理超出屏幕的元素（每3秒，只在烟花开启时运行）
+        let cleanupInterval;
+        
+        function startCleanupInterval() {
+            if (!cleanupInterval) {
+                cleanupInterval = setInterval(() => {
+                    if (isFireworksEnabled) {
+                        fireworkLauncher.cleanupOffscreen();
+                    }
+                }, 3000);
+            }
+        }
+        
+        function stopCleanupInterval() {
+            if (cleanupInterval) {
+                clearInterval(cleanupInterval);
+                cleanupInterval = null;
+            }
+        }
+        
+        // 启动清理定时器
+        startCleanupInterval();
+        
+        // 性能监控 - 如果帧率过低，减少发射频率
+        let lastFrameTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
+        let performanceMonitorRunning = false;
+        
+        function monitorPerformance() {
+            const currentTime = performance.now();
+            frameCount++;
+            
+            if (currentTime - lastFrameTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFrameTime = currentTime;
+                
+                // 如果帧率低于45fps，降低发射频率（只在烟花开启时）
+                if (fps < 45 && isFireworksEnabled) {
+                    fireworkLauncher.stop();
+                    setTimeout(() => {
+                        if (isFireworksEnabled) {
+                            fireworkLauncher.start();
+                        }
+                    }, 2000);
+                }
+            }
+            
+            if (performanceMonitorRunning) {
+                requestAnimationFrame(monitorPerformance);
+            }
+        }
+        
+        // 启动性能监控
+        function startPerformanceMonitor() {
+            if (!performanceMonitorRunning) {
+                performanceMonitorRunning = true;
+                requestAnimationFrame(monitorPerformance);
+            }
+        }
+        
+        // 停止性能监控
+        function stopPerformanceMonitor() {
+            performanceMonitorRunning = false;
+        }
 
             // Handle Resize
             window.addEventListener('resize', () => {
