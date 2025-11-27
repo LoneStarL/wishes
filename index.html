@@ -255,20 +255,6 @@
                     </div>
                 </div>
                 
-                <!-- Music Control Section -->
-                <div class="mt-3 w-full">
-                    <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase mb-2">背景音乐</div>
-                    <div class="flex items-center gap-3 bg-white/10 rounded-lg p-3">
-                        <button id="music-toggle" class="text-white hover:text-white/80 transition-colors p-2 rounded-full">
-                            🎵 关
-                        </button>
-                        <div class="flex-1">
-                            <input type="range" id="music-volume" min="0" max="100" value="50" class="w-full bg-white/30 rounded-lg appearance-none cursor-pointer h-2">
-                        </div>
-                        <span id="volume-level" class="text-white text-xs w-8 text-center">50%</span>
-                    </div>
-                </div>
-                
                 <!-- Control Buttons -->
                 <div class="flex gap-2 sm:gap-3 w-full justify-center mt-3 flex-wrap">
                     <button id="toggle-auto" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
@@ -279,9 +265,6 @@
                     </button>
                     <button id="share-btn" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
                         📤 分享
-                    </button>
-                    <button id="screenshot-btn" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
-                        📸 截图
                     </button>
                 </div>
             </div>
@@ -524,19 +507,9 @@
             let customWishes = JSON.parse(localStorage.getItem('customWishes')) || [];
             const maxCustomWishes = 10;
             
-            // 背景音乐状态
-            let isMusicEnabled = false;
-            let musicVolume = 0.5; // 0-1 range
-            let audioContext = null;
-            let oscillator = null;
-            let gainNode = null;
-            
             // 获取控制按钮元素
             const autoToggleBtn = document.getElementById('toggle-auto');
             const fireworksToggleBtn = document.getElementById('toggle-fireworks');
-            const musicToggleBtn = document.getElementById('music-toggle');
-            const musicVolumeSlider = document.getElementById('music-volume');
-            const volumeLevelDisplay = document.getElementById('volume-level');
 
             // --- Custom Wishes Management ---
             
@@ -628,30 +601,6 @@
                 }
             }
             
-            // Screenshot functionality
-            function takeScreenshot() {
-                // Create a canvas element
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set canvas size to window size
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                
-                // Draw the document body
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Create an image from the canvas
-                const img = canvas.toDataURL('image/png');
-                
-                // Create a download link
-                const link = document.createElement('a');
-                link.download = `祝福_${currentThemeKey}_${Date.now()}.png`;
-                link.href = img;
-                link.click();
-            }
-            
             // Initialize sharing UI
             function initSharingUI() {
                 // Add share button event listener
@@ -660,16 +609,9 @@
                     e.stopPropagation();
                     handleShare();
                 });
-                
-                // Add screenshot button event listener
-                const screenshotBtn = document.getElementById('screenshot-btn');
-                screenshotBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    takeScreenshot();
-                });
             }
             
-            // --- Music Functions ---
+
             
             // Initialize Audio Context
             function initAudioContext() {
@@ -1121,8 +1063,7 @@
 
             // 烟花发射器类
             class FireworkLauncher {
-                constructor(appInstance) {
-                    this.app = appInstance;
+                constructor() {
                     this.launchInterval = null;
                     this.activeFireworks = [];
                     this.isActive = false;
@@ -1209,7 +1150,7 @@
                 }
                 
                 launchFirework() {
-                    const theme = this.app.themes[this.app.state.currentThemeKey];
+                    const theme = themes[currentThemeKey];
                     const firework = this.fireworkPool.get();
                     if (!firework) return;
                     
@@ -1553,7 +1494,7 @@
              initPanelManagement(); // Initialize panel hide/show functionality
              initCustomWishesUI(); // Initialize custom wishes UI
              initSharingUI(); // Initialize sharing functionality
-             initMusicUI(); // Initialize music functionality
+
 
             // 注意：烟花发射系统默认关闭，需要用户手动开启
         
