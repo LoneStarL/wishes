@@ -38,12 +38,31 @@
                 padding: 0.75rem 1rem;
             }
             
-            /* Theme button specific mobile styles */
-            #theme-buttons button {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.75rem;
-                min-height: 36px;
-            }
+            /* Enhanced theme button styles */
+        #theme-buttons button {
+            position: relative;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #theme-buttons button:hover {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        #theme-buttons button:active {
+            transform: scale(0.95) translateY(1px);
+        }
+        
+        /* Theme button specific mobile styles */
+        #theme-buttons button {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            min-height: 36px;
+        }
             
             /* Control button specific mobile styles */
             #toggle-auto {
@@ -215,18 +234,54 @@
                 </div>
                 
                 <!-- Theme Selection -->
-                <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase">选择主题</div>
-                <div class="flex flex-wrap justify-center gap-1 sm:gap-2 md:gap-3" id="theme-buttons">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase mb-2">选择主题</div>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 w-full max-w-[320px] sm:max-w-[400px]" id="theme-buttons">
                     <!-- Buttons injected by JS -->
                 </div>
                 
+                <!-- Custom Wishes Section -->
+                <div class="mt-3 w-full">
+                    <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase mb-2">自定义祝福</div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="custom-wish-input" placeholder="输入你的祝福..." class="flex-1 bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-2 text-sm border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50">
+                            <button id="add-custom-wish" class="bg-white/30 hover:bg-white/40 text-white py-2 px-3 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm">
+                                添加
+                            </button>
+                        </div>
+                        <div id="custom-wishes-list" class="max-h-[120px] overflow-y-auto bg-white/10 rounded-lg p-2 text-sm text-white/80 space-y-1">
+                            <!-- Custom wishes will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Music Control Section -->
+                <div class="mt-3 w-full">
+                    <div class="text-white text-xs sm:text-sm font-bold tracking-wider opacity-80 uppercase mb-2">背景音乐</div>
+                    <div class="flex items-center gap-3 bg-white/10 rounded-lg p-3">
+                        <button id="music-toggle" class="text-white hover:text-white/80 transition-colors p-2 rounded-full">
+                            🎵 关
+                        </button>
+                        <div class="flex-1">
+                            <input type="range" id="music-volume" min="0" max="100" value="50" class="w-full bg-white/30 rounded-lg appearance-none cursor-pointer h-2">
+                        </div>
+                        <span id="volume-level" class="text-white text-xs w-8 text-center">50%</span>
+                    </div>
+                </div>
+                
                 <!-- Control Buttons -->
-                <div class="flex gap-2 sm:gap-3 w-full justify-center">
+                <div class="flex gap-2 sm:gap-3 w-full justify-center mt-3 flex-wrap">
                     <button id="toggle-auto" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
                         ⏸ 暂停
                     </button>
                     <button id="toggle-fireworks" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
                         🎆 烟花关
+                    </button>
+                    <button id="share-btn" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
+                        📤 分享
+                    </button>
+                    <button id="screenshot-btn" class="bg-white/20 hover:bg-white/30 text-white py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-sm sm:text-base flex-1 max-w-[120px]">
+                        📸 截图
                     </button>
                 </div>
             </div>
@@ -289,6 +344,51 @@
                     emojis: ["💰", "💸", "🤑", "💎", "🏦", "📈", "🪙"],
                     color: "text-yellow-100",
                     particleColor: "#FFD700"
+                },
+                ocean: {
+                    name: "海洋",
+                    bgClass: "bg-gradient-to-b from-blue-900 via-cyan-700 to-teal-500",
+                    title: "深海奇遇",
+                    texts: ["海纳百川", "乘风破浪", "深海探险", "蓝色梦想", "海阔天空", "水清鱼跃", "波涛汹涌"],
+                    emojis: ["🌊", "🐋", "🐙", "🦈", "⚓", "🏝️", "🐚"],
+                    color: "text-cyan-100",
+                    particleColor: "#00CED1"
+                },
+                forest: {
+                    name: "森林",
+                    bgClass: "bg-gradient-to-b from-green-900 via-emerald-700 to-lime-500",
+                    title: "绿野仙踪",
+                    texts: ["绿意盎然", "生机勃勃", "森林守护", "自然和谐", "青山绿水", "花开富贵", "枝繁叶茂"],
+                    emojis: ["🌲", "🦌", "🌿", "🍄", "🦋", "🌺", "🐿️"],
+                    color: "text-green-100",
+                    particleColor: "#90EE90"
+                },
+                galaxy: {
+                    name: "星空",
+                    bgClass: "bg-gradient-to-b from-indigo-900 via-purple-800 to-pink-600",
+                    title: "星河漫步",
+                    texts: ["星光璀璨", "宇宙无限", "星辰大海", "银河漫游", "星光闪闪", "星际旅行", "星河万顷"],
+                    emojis: ["⭐", "🌙", "🪐", "🌌", "☄️", "🛸", "✨"],
+                    color: "text-purple-100",
+                    particleColor: "#DDA0DD"
+                },
+                sunset: {
+                    name: "日落",
+                    bgClass: "bg-gradient-to-b from-orange-800 via-red-600 to-yellow-500",
+                    title: "夕阳西下",
+                    texts: ["落日余晖", "晚霞满天", "夕阳西下", "金光万道", "霞光万丈", "日落西山", "余晖袅袅"],
+                    emojis: ["🌅", "🌇", "☀️", "🌞", "🦅", "🏔️", "🌄"],
+                    color: "text-orange-100",
+                    particleColor: "#FFA500"
+                },
+                dream: {
+                    name: "梦幻",
+                    bgClass: "bg-gradient-to-br from-purple-900 via-fuchsia-700 to-pink-500",
+                    title: "梦幻仙境",
+                    texts: ["如梦如幻", "仙境漫游", "彩云追月", "花好月圆", "美梦成真", "幻境仙踪", "仙气飘飘"],
+                    emojis: ["🦄", "🌈", "💫", "🧚", "🦋", "🌸", "✨"],
+                    color: "text-fuchsia-100",
+                    particleColor: "#FF00FF"
                 }
             };
 
@@ -420,25 +520,328 @@
             // 烟花发射系统状态（默认关闭）
             let isFireworksEnabled = false;
             
+            // 自定义祝福状态
+            let customWishes = JSON.parse(localStorage.getItem('customWishes')) || [];
+            const maxCustomWishes = 10;
+            
+            // 背景音乐状态
+            let isMusicEnabled = false;
+            let musicVolume = 0.5; // 0-1 range
+            let audioContext = null;
+            let oscillator = null;
+            let gainNode = null;
+            
             // 获取控制按钮元素
             const autoToggleBtn = document.getElementById('toggle-auto');
             const fireworksToggleBtn = document.getElementById('toggle-fireworks');
+            const musicToggleBtn = document.getElementById('music-toggle');
+            const musicVolumeSlider = document.getElementById('music-volume');
+            const volumeLevelDisplay = document.getElementById('volume-level');
 
+            // --- Custom Wishes Management ---
+            
+            // Render custom wishes list
+            function renderCustomWishes() {
+                const list = document.getElementById('custom-wishes-list');
+                list.innerHTML = '';
+                
+                customWishes.forEach((wish, index) => {
+                    const wishItem = document.createElement('div');
+                    wishItem.className = 'flex items-center justify-between p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors';
+                    wishItem.innerHTML = `
+                        <span class="text-white truncate">${wish}</span>
+                        <button class="delete-wish-btn text-white/70 hover:text-white transition-colors p-1" data-index="${index}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    `;
+                    list.appendChild(wishItem);
+                });
+                
+                // Add delete event listeners
+                document.querySelectorAll('.delete-wish-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        deleteCustomWish(index);
+                    });
+                });
+            }
+            
+            // Add custom wish
+            function addCustomWish(wish) {
+                if (!wish.trim() || customWishes.length >= maxCustomWishes) return;
+                
+                customWishes.push(wish.trim());
+                saveCustomWishes();
+                renderCustomWishes();
+                
+                // Clear input
+                document.getElementById('custom-wish-input').value = '';
+            }
+            
+            // Delete custom wish
+            function deleteCustomWish(index) {
+                customWishes.splice(index, 1);
+                saveCustomWishes();
+                renderCustomWishes();
+            }
+            
+            // Save custom wishes to localStorage
+            function saveCustomWishes() {
+                localStorage.setItem('customWishes', JSON.stringify(customWishes));
+            }
+            
+            // --- Sharing Functions ---
+            
+            // Generate shareable URL with current theme
+            function generateShareableURL() {
+                const url = new URL(window.location.href);
+                url.searchParams.set('theme', currentThemeKey);
+                return url.toString();
+            }
+            
+            // Share functionality
+            function handleShare() {
+                const shareUrl = generateShareableURL();
+                
+                // Check if Web Share API is supported
+                if (navigator.share) {
+                    navigator.share({
+                        title: '祝福生成器',
+                        text: '快来看看我的祝福！',
+                        url: shareUrl,
+                    })
+                    .catch((error) => console.log('分享失败:', error));
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(shareUrl)
+                        .then(() => {
+                            alert('分享链接已复制到剪贴板！');
+                        })
+                        .catch((error) => {
+                            console.error('复制失败:', error);
+                            // Manual copy fallback
+                            prompt('请复制以下链接:', shareUrl);
+                        });
+                }
+            }
+            
+            // Screenshot functionality
+            function takeScreenshot() {
+                // Create a canvas element
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas size to window size
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Draw the document body
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Create an image from the canvas
+                const img = canvas.toDataURL('image/png');
+                
+                // Create a download link
+                const link = document.createElement('a');
+                link.download = `祝福_${currentThemeKey}_${Date.now()}.png`;
+                link.href = img;
+                link.click();
+            }
+            
+            // Initialize sharing UI
+            function initSharingUI() {
+                // Add share button event listener
+                const shareBtn = document.getElementById('share-btn');
+                shareBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleShare();
+                });
+                
+                // Add screenshot button event listener
+                const screenshotBtn = document.getElementById('screenshot-btn');
+                screenshotBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    takeScreenshot();
+                });
+            }
+            
+            // --- Music Functions ---
+            
+            // Initialize Audio Context
+            function initAudioContext() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    gainNode = audioContext.createGain();
+                    gainNode.connect(audioContext.destination);
+                    gainNode.gain.value = musicVolume;
+                }
+            }
+            
+            // Play background music with simple melody
+            function playMusic() {
+                if (!audioContext) {
+                    initAudioContext();
+                }
+                
+                // Resume audio context if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // Create oscillator for simple melody
+                oscillator = audioContext.createOscillator();
+                oscillator.connect(gainNode);
+                
+                // Simple melody based on theme
+                const theme = themes[currentThemeKey];
+                let frequency;
+                
+                // Assign different base frequencies based on theme
+                switch (currentThemeKey) {
+                    case 'newyear':
+                        frequency = 523; // C5 - Happy tone
+                        break;
+                    case 'birthday':
+                        frequency = 659; // E5 - Joyful tone
+                        break;
+                    case 'love':
+                        frequency = 698; // F5 - Romantic tone
+                        break;
+                    case 'cyber':
+                        frequency = 880; // A5 - Futuristic tone
+                        break;
+                    case 'galaxy':
+                        frequency = 784; // G5 - Dreamy tone
+                        break;
+                    default:
+                        frequency = 587; // D5 - Neutral tone
+                }
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                // Create simple melody with frequency modulation
+                let time = audioContext.currentTime;
+                const notes = [frequency, frequency * 1.25, frequency * 1.5, frequency * 1.75, frequency * 2];
+                
+                for (let i = 0; i < 20; i++) {
+                    const note = notes[Math.floor(Math.random() * notes.length)];
+                    oscillator.frequency.setValueAtTime(note, time);
+                    time += 0.5;
+                }
+                
+                oscillator.start();
+                
+                // Stop after 10 seconds and restart for continuous music
+                oscillator.stop(audioContext.currentTime + 10);
+                oscillator.onended = () => {
+                    if (isMusicEnabled) {
+                        setTimeout(playMusic, 500);
+                    }
+                };
+            }
+            
+            // Stop background music
+            function stopMusic() {
+                if (oscillator) {
+                    oscillator.stop();
+                    oscillator = null;
+                }
+            }
+            
+            // Toggle music on/off
+            function toggleMusic() {
+                isMusicEnabled = !isMusicEnabled;
+                
+                if (isMusicEnabled) {
+                    playMusic();
+                    musicToggleBtn.innerHTML = '🎵 开';
+                    musicToggleBtn.classList.add('bg-green-500/30', 'hover:bg-green-500/40');
+                    musicToggleBtn.classList.remove('bg-white/20', 'hover:bg-white/30');
+                } else {
+                    stopMusic();
+                    musicToggleBtn.innerHTML = '🎵 关';
+                    musicToggleBtn.classList.remove('bg-green-500/30', 'hover:bg-green-500/40');
+                    musicToggleBtn.classList.add('bg-white/20', 'hover:bg-white/30');
+                }
+            }
+            
+            // Update volume
+            function updateVolume(volume) {
+                musicVolume = volume / 100; // Convert to 0-1 range
+                volumeLevelDisplay.textContent = `${volume}%`;
+                
+                if (gainNode) {
+                    gainNode.gain.value = musicVolume;
+                }
+            }
+            
+            // Initialize music UI
+            function initMusicUI() {
+                // Set initial volume display
+                volumeLevelDisplay.textContent = `${Math.round(musicVolume * 100)}%`;
+                musicVolumeSlider.value = Math.round(musicVolume * 100);
+                
+                // Add music toggle event listener
+                musicToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleMusic();
+                });
+                
+                // Add volume change event listener
+                musicVolumeSlider.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    const volume = parseInt(e.target.value);
+                    updateVolume(volume);
+                });
+            }
+            
             // --- Core Functions ---
 
             // Initialize Theme Buttons
             // Create UI elements
             function initUI() {
-                // Create theme buttons with responsive sizing
+                // Create theme buttons with enhanced design
                 const btnContainer = document.getElementById('theme-buttons');
                 Object.keys(themes).forEach(key => {
+                    const theme = themes[key];
                     const btn = document.createElement('button');
-                    btn.innerText = themes[key].name;
-                    btn.className = 'text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg transition font-bold active:scale-95 min-h-[44px] text-xs sm:text-sm md:text-base bg-transparent hover:bg-white/10';
+                    
+                    // Create button content with emoji icon
+                    btn.innerHTML = `
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-lg">${theme.emojis[0]}</span>
+                            <span class="text-xs sm:text-sm font-bold">${theme.name}</span>
+                        </div>
+                    `;
+                    
+                    // Enhanced button styling with gradient preview
+                    btn.className = 'text-white py-2 sm:py-3 px-2 sm:px-4 rounded-xl transition-all duration-300 font-bold active:scale-95 min-h-[60px] sm:min-h-[70px] bg-white/10 hover:bg-white/20 hover:scale-105 hover:shadow-lg border border-white/20 hover:border-white/40 relative overflow-hidden group';
+                    
+                    // Add gradient background preview
+                    const gradientPreview = document.createElement('div');
+                    gradientPreview.className = 'absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-300';
+                    gradientPreview.style.background = `linear-gradient(135deg, ${theme.particleColor}40, ${theme.particleColor}80)`;
+                    btn.appendChild(gradientPreview);
+                    
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         setTheme(key);
                     });
+                    
+                    // Add hover sound effect (visual feedback)
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.transform = 'scale(1.05) translateY(-2px)';
+                    });
+                    
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.transform = 'scale(1) translateY(0)';
+                    });
+                    
                     btnContainer.appendChild(btn);
                 });
             }
@@ -447,25 +850,69 @@
                 currentThemeKey = key;
                 const theme = themes[key];
                 
+                // Add theme switching animation
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-white z-50 pointer-events-none';
+                overlay.style.opacity = '0';
+                document.body.appendChild(overlay);
+                
+                // Animate overlay fade in
+                setTimeout(() => {
+                    overlay.style.transition = 'opacity 0.3s ease-in-out';
+                    overlay.style.opacity = '0.3';
+                }, 50);
+                
                 // Update Background
                 body.className = `h-screen w-screen overflow-hidden transition-colors duration-1000 ease-in-out ${theme.bgClass}`;
                 
-                // Update Title
-                titleEl.innerText = theme.title;
+                // Update Title with fade effect
+                titleEl.style.transition = 'opacity 0.3s ease-in-out';
                 titleEl.style.opacity = 0;
                 setTimeout(() => {
+                    titleEl.innerText = theme.title;
                     titleEl.style.opacity = 0.9;
                 }, 300);
+                
+                // Remove overlay after transition
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                    }, 300);
+                }, 400);
 
-                // Update Buttons visual state
+                // Update Buttons visual state with enhanced styling
                 const btns = document.getElementById('theme-buttons').children;
                 Object.keys(themes).forEach((k, index) => {
+                    const theme = themes[k];
                     if (k === key) {
-                        btns[index].classList.add('bg-white/30', 'ring-2', 'ring-white/50');
-                        btns[index].classList.remove('bg-transparent', 'hover:bg-white/10');
+                        // Active state with enhanced styling
+                        btns[index].classList.add('bg-white/40', 'ring-2', 'ring-white/70', 'scale-105', 'shadow-xl');
+                        btns[index].classList.remove('bg-white/10', 'hover:bg-white/20', 'hover:scale-105', 'hover:shadow-lg');
+                        
+                        // Add active gradient overlay
+                        const gradientOverlay = btns[index].querySelector('div');
+                        if (gradientOverlay) {
+                            gradientOverlay.style.opacity = '0.6';
+                            gradientOverlay.style.background = `linear-gradient(135deg, ${theme.particleColor}60, ${theme.particleColor}90)`;
+                        }
+                        
+                        // Add pulse animation to active button
+                        btns[index].style.animation = 'pulse-glow 2s infinite';
                     } else {
-                        btns[index].classList.remove('bg-white/30', 'ring-2', 'ring-white/50');
-                        btns[index].classList.add('bg-transparent', 'hover:bg-white/10');
+                        // Inactive state
+                        btns[index].classList.remove('bg-white/40', 'ring-2', 'ring-white/70', 'scale-105', 'shadow-xl', 'pulse-glow');
+                        btns[index].classList.add('bg-white/10', 'hover:bg-white/20', 'hover:scale-105', 'hover:shadow-lg');
+                        
+                        // Reset gradient overlay
+                        const gradientOverlay = btns[index].querySelector('div');
+                        if (gradientOverlay) {
+                            gradientOverlay.style.opacity = '0.2';
+                            gradientOverlay.style.background = `linear-gradient(135deg, ${theme.particleColor}40, ${theme.particleColor}80)`;
+                        }
+                        
+                        // Remove pulse animation
+                        btns[index].style.animation = '';
                     }
                 });
             }
@@ -477,9 +924,15 @@
                 
                 // Decide content: text or emoji
                 const isText = Math.random() > 0.4;
-                const content = isText 
-                    ? theme.texts[Math.floor(Math.random() * theme.texts.length)]
-                    : theme.emojis[Math.floor(Math.random() * theme.emojis.length)];
+                let content;
+                
+                if (isText) {
+                    // Combine theme texts with custom wishes
+                    const allTexts = [...theme.texts, ...customWishes];
+                    content = allTexts[Math.floor(Math.random() * allTexts.length)];
+                } else {
+                    content = theme.emojis[Math.floor(Math.random() * theme.emojis.length)];
+                }
 
                 el.innerText = content;
                 el.className = `blessing-item font-art font-bold absolute ${theme.color}`;
@@ -668,7 +1121,8 @@
 
             // 烟花发射器类
             class FireworkLauncher {
-                constructor() {
+                constructor(appInstance) {
+                    this.app = appInstance;
                     this.launchInterval = null;
                     this.activeFireworks = [];
                     this.isActive = false;
@@ -755,7 +1209,7 @@
                 }
                 
                 launchFirework() {
-                    const theme = themes[currentThemeKey];
+                    const theme = this.app.themes[this.app.state.currentThemeKey];
                     const firework = this.fireworkPool.get();
                     if (!firework) return;
                     
@@ -1056,11 +1510,50 @@
         // 覆盖全局函数
         window.spawnBlessing = spawnBlessingWithFireworks;
 
+            // Initialize Custom Wishes UI
+            function initCustomWishesUI() {
+                // Add custom wish event listeners
+                const input = document.getElementById('custom-wish-input');
+                const addBtn = document.getElementById('add-custom-wish');
+                
+                // Add wish on button click
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const wish = input.value;
+                    addCustomWish(wish);
+                });
+                
+                // Add wish on enter key
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        const wish = input.value;
+                        addCustomWish(wish);
+                    }
+                });
+                
+                // Render initial custom wishes
+                renderCustomWishes();
+            }
+            
+            // Load theme from URL params if available
+            function loadThemeFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const themeParam = urlParams.get('theme');
+                if (themeParam && themes[themeParam]) {
+                    setTheme(themeParam);
+                }
+            }
+            
             // Initialization
              initUI();
-             setTheme('newyear');
+             loadThemeFromURL(); // Load theme from URL first
+             setTheme(currentThemeKey); // Fallback to default if no URL theme
              startAutoSpawn();
              initPanelManagement(); // Initialize panel hide/show functionality
+             initCustomWishesUI(); // Initialize custom wishes UI
+             initSharingUI(); // Initialize sharing functionality
+             initMusicUI(); // Initialize music functionality
 
             // 注意：烟花发射系统默认关闭，需要用户手动开启
         
